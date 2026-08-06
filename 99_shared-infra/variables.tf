@@ -20,6 +20,12 @@ variable "gcp_region" {
   default = "us-central1"
 }
 
+variable "tf_state_bucket" {
+  description = "GCS bucket holding every project_*'s Terraform state — used to read each project's domain-mapping CNAME target via terraform_remote_state."
+  type        = string
+  default     = "mk-ai-projects-tfstate"
+}
+
 # One entry per project. Key must match the project_<key> directory name —
 # its Cloud Run domain-mapping CNAME target is read from that directory's own
 # state (see data.terraform_remote_state.projects in main.tf), not hardcoded

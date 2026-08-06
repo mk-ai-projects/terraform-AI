@@ -1,0 +1,215 @@
+# One common pipeline for every project_<name> directory, parameterized by
+# folder name instead of duplicating a workflow per project.
+#
+# - PR / push to main: auto-detects which project_* dirs changed (via
+#   dorny/paths-filter) and runs plan (PR) or apply (push to main) for each,
+#   using -var-file=app.tfvars in that project's own directory.
+# - workflow_dispatch: manually pick a project + plan/apply from the Actions
+#   tab — the "select which project_ folder" escape hatch, useful for a first
+#   run or a forced re-apply with no code change.
+#
+# PREREQUISITES (see shared-infra.yml for the full list — same bucket/auth):
+#   1. Each project_<name> migrated from local to backend "gcs" {} (prefix
+#      project_<name>), state copied up via `terraform init -migrate-state`.
+#   2. Repo variable TF_STATE_BUCKET, repo secret GCP_SA_KEY (see shared-infra.yml).
+#   3. Projects with secrets.tf (mealplan, mk-trading) need their
+#      secrets.auto.tfvars content stored as a repo secret — see the
+#      "write secrets.auto.tfvars" step below; add a case for any new project
+#      that gets its own secrets.tf.
+
+name: project-infra
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "project_*/**"
+  push:
+    branches: [main]
+    paths:
+      - "project_*/**"
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "project_<name> folder to run against"
+        required: true
+        type: choice
+        options:
+          - mealplan
+          - mk-stock-screener
+          - mk-trading
+          - video-downloader
+      action:
+        description: "Terraform action"
+        type: choice
+        options: [plan, apply]
+        default: plan
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  detect:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            mealplan:
+              - 'project_mealplan/**'
+            mk-stock-screener:
+              - 'project_mk-stock-screener/**'
+            mk-trading:
+              - 'project_mk-trading/**'
+            video-downloader:
+              - 'project_video-downloader/**'
+
+  plan:
+    needs: [detect]
+    if: github.event_name == 'pull_request' && needs.detect.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: write secrets.auto.tfvars
+        working-directory: project_${{ matrix.project }}
+        env:
+          MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
+          MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+        run: |
+          case "${{ matrix.project }}" in
+            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            *) ;;
+          esac
+
+      - name: terraform init
+        working-directory: project_${{ matrix.project }}
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=project_${{ matrix.project }}"
+
+      - name: terraform plan
+        id: plan
+        working-directory: project_${{ matrix.project }}
+        run: terraform plan -no-color -input=false -var-file=app.tfvars
+        continue-on-error: true
+
+      - name: comment plan on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Terraform Plan — project_${{ matrix.project }}
+            \`\`\`
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output,
+            });
+
+      - name: fail if plan errored
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  apply:
+    needs: [detect]
+    if: github.event_name == 'push' && needs.detect.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: write secrets.auto.tfvars
+        working-directory: project_${{ matrix.project }}
+        env:
+          MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
+          MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+        run: |
+          case "${{ matrix.project }}" in
+            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            *) ;;
+          esac
+
+      - name: terraform init
+        working-directory: project_${{ matrix.project }}
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=project_${{ matrix.project }}"
+
+      - name: terraform apply
+        working-directory: project_${{ matrix.project }}
+        run: terraform apply -auto-approve -input=false -var-file=app.tfvars
+
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: write secrets.auto.tfvars
+        working-directory: project_${{ github.event.inputs.project }}
+        env:
+          MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
+          MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+        run: |
+          case "${{ github.event.inputs.project }}" in
+            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            *) ;;
+          esac
+
+      - name: terraform init
+        working-directory: project_${{ github.event.inputs.project }}
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=project_${{ github.event.inputs.project }}"
+
+      - name: terraform plan
+        if: github.event.inputs.action == 'plan'
+        working-directory: project_${{ github.event.inputs.project }}
+        run: terraform plan -input=false -var-file=app.tfvars
+
+      - name: terraform apply
+        if: github.event.inputs.action == 'apply'
+        working-directory: project_${{ github.event.inputs.project }}
+        run: terraform apply -auto-approve -input=false -var-file=app.tfvars

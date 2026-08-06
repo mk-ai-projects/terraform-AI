@@ -9,6 +9,10 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  # Bucket/prefix passed via -backend-config (see .github/workflows/shared-infra.yml
+  # and the one-time `terraform init -migrate-state` that moved this off local state).
+  backend "gcs" {}
 }
 
 provider "cloudflare" {
@@ -36,10 +40,11 @@ module "shared_environment" {
 # hand-typed here.
 data "terraform_remote_state" "projects" {
   for_each = var.projects
-  backend  = "local"
+  backend  = "gcs"
 
   config = {
-    path = "../project_${each.key}/terraform.tfstate"
+    bucket = var.tf_state_bucket
+    prefix = "project_${each.key}"
   }
 }
 

@@ -18,6 +18,10 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  # Bucket/prefix passed via -backend-config (see .github/workflows/project-infra.yml
+  # and the one-time `terraform init -migrate-state` that moved this off local state).
+  backend "gcs" {}
 }
 
 provider "google" {
