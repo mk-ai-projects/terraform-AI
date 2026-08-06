@@ -1,0 +1,18 @@
+## Template: project_<name>/app.tfvars — copy to project_<name>/app.tfvars
+## and replace every {{PLACEHOLDER}}. This is the one place per-project
+## values live; infra.tf and variables.tf stay identical across projects.
+
+name                   = "{{PROJECT_NAME}}"
+image                  = "{{IMAGE}}" # e.g. "docker.io/<dockerhub-user>/<project-name>:latest"
+container_port         = {{CONTAINER_PORT}}
+cpu                    = "{{CPU}}"
+memory                 = "{{MEMORY}}"
+min_instances          = {{MIN_INSTANCES}}
+max_instances          = {{MAX_INSTANCES}}
+allow_unauthenticated  = true
+# to restrict instead of public, set allow_unauthenticated = false and:
+# invoker_members        = ["user:you@example.com"]
+custom_domain          = "{{PROJECT_NAME}}.mayankkoli.com"
+# domain must already be verified for mk-ai-projects in Search Console before
+# apply — Terraform can't do that step. Leave as `custom_domain = null` to skip
+# the domain mapping (service stays reachable only at its *.run.app URL).

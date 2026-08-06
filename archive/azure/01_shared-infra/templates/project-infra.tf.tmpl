@@ -1,0 +1,46 @@
+## Template: project_<name>/infra.tf — copy as-is, no placeholders to fill here.
+## Actual values come from project_<name>/app.tfvars (see project-app.tfvars.tmpl).
+##
+## Every project_* directory deploys its Container App into the ONE shared
+## Container App Environment defined in 01_shared-infra/modules/azureEnvironment
+## (wired up via module "shared_environment" in 01_shared-infra/main.tf).
+## Do not create a new environment/resource group per project — read the
+## shared one's outputs via terraform_remote_state instead.
+
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+data "terraform_remote_state" "shared" {
+  backend = "local"
+
+  config = {
+    path = "../01_shared-infra/terraform.tfstate"
+  }
+}
+
+module "app" {
+  source                       = "../01_shared-infra/modules/azureContainers"
+  name                         = var.name
+  container_app_environment_id = data.terraform_remote_state.shared.outputs.container_environment_id
+  resource_group_name          = data.terraform_remote_state.shared.outputs.container_environment_resource_group
+  image                        = var.image
+  min_replicas                 = var.min_replicas
+  max_replicas                 = var.max_replicas
+  target_port                  = var.target_port
+  cpu                          = var.cpu
+  memory                       = var.memory
+}
+
+output "fqdn" {
+  value = module.app.fqdn
+}

@@ -1,0 +1,32 @@
+variable "name" {
+  type = string
+}
+
+variable "image" {
+  type = string
+}
+
+variable "target_port" {
+  type    = number
+  default = 8080
+}
+
+variable "cpu" {
+  type    = number
+  default = 0.25
+}
+
+variable "memory" {
+  type    = string
+  default = "0.5Gi"
+}
+
+variable "min_replicas" {
+  type    = number
+  default = 0
+}
+
+variable "max_replicas" {
+  type    = number
+  default = 1
+}

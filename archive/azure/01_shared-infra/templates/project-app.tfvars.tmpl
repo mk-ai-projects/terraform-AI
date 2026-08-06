@@ -1,0 +1,11 @@
+## Template: project_<name>/app.tfvars — copy to project_<name>/app.tfvars
+## and replace every {{PLACEHOLDER}}. This is the one place per-project
+## values live; infra.tf and variables.tf stay identical across projects.
+
+name         = "{{PROJECT_NAME}}"
+image        = "{{IMAGE}}" # e.g. "docker.io/<dockerhub-user>/<project-name>:latest" or "myregistry.azurecr.io/<project-name>:latest"
+target_port  = {{TARGET_PORT}}
+cpu          = {{CPU}}
+memory       = "{{MEMORY}}"
+min_replicas = {{MIN_REPLICAS}}
+max_replicas = {{MAX_REPLICAS}}

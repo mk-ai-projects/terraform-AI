@@ -1,0 +1,99 @@
+# name: terraform
+
+# on:
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - "**/*.tf"
+#   push:
+#     branches: [main]
+#     paths:
+#       - "**/*.tf"
+
+# permissions:
+#   contents: read
+#   pull-requests: write
+
+# jobs:
+#   plan:
+#     if: github.event_name == 'pull_request'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - uses: hashicorp/setup-terraform@v3
+
+#       - name: terraform init
+#         run: terraform init
+#         working-directory: shared-infra
+#         env:
+#           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+#           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+#           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+#           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+#       - name: terraform plan
+#         id: plan
+#         run: terraform plan -no-color -out=tfplan
+#         working-directory: shared-infra
+#         env:
+#           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+#           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+#           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+#           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+#         continue-on-error: true
+
+#       # Posts the plan output as a PR comment so review happens before merge,
+#       # with no local/manual apply step anywhere in this job.
+#       - name: comment plan on PR
+#         uses: actions/github-script@v7
+#         with:
+#           script: |
+#             const output = `#### Terraform Plan
+#             \`\`\`
+#             ${{ steps.plan.outputs.stdout }}
+#             \`\`\`
+#             `;
+#             github.rest.issues.createComment({
+#               issue_number: context.issue.number,
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               body: output
+#             });
+
+#       - name: fail if plan errored
+#         if: steps.plan.outcome == 'failure'
+#         run: exit 1
+
+#   apply:
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+#     environment: production
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - uses: hashicorp/setup-terraform@v3
+
+#       - name: terraform init
+#         run: terraform init
+#         working-directory: shared-infra
+#         env:
+#           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+#           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+#           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+#           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+#       # Runs automatically only on merge to main — this is the one and only
+#       # place `apply` executes in this pipeline.
+#       - name: terraform apply
+#         run: terraform apply -auto-approve
+#         working-directory: shared-infra
+#         env:
+#           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+#           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+#           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+#           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}

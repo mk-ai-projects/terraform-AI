@@ -1,0 +1,10 @@
+name                  = "mk-stock-screener"
+image                 = "docker.io/manukoli1986/mk-stock-screener:latest"
+container_port        = 8080
+cpu                   = "1"
+memory                = "512Mi"
+min_instances         = 0
+max_instances         = 1
+allow_unauthenticated = true
+invoker_members       = []
+custom_domain         = "mk-stock-screener.mayankkoli.com"
