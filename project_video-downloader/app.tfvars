@@ -1,5 +1,5 @@
 name                  = "video-downloader"
-image                 = "docker.io/manukoli1986/video_downloader:1.0.1"
+image                 = "docker.io/manukoli1986/video_downloader:1.0.2"
 container_port        = 8080
 cpu                   = "1"
 memory                = "512Mi"
