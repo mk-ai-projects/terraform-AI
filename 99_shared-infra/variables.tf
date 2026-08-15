@@ -40,5 +40,6 @@ variable "projects" {
     mealplan          = {}
     mk-trading        = {}
     video-downloader  = {}
+    weather-app       = {}
   }
 }
