@@ -12,7 +12,7 @@
 #   1. Each project_<name> migrated from local to backend "gcs" {} (prefix
 #      project_<name>), state copied up via `terraform init -migrate-state`.
 #   2. Repo variable TF_STATE_BUCKET, repo secret GCP_SA_KEY (see shared-infra.yml).
-#   3. Projects with secrets.tf (mealplan, mk-trading) need their
+#   3. Projects with secrets.tf (mealplan, mk-trading, weather-app) need their
 #      secrets.auto.tfvars content stored as a repo secret — see the
 #      "write secrets.auto.tfvars" step below; add a case for any new project
 #      that gets its own secrets.tf.
@@ -39,6 +39,7 @@ on:
           - mk-stock-screener
           - mk-trading
           - video-downloader
+          - weather-app
       action:
         description: "Terraform action"
         type: choice
@@ -70,6 +71,8 @@ jobs:
               - 'project_mk-trading/**'
             video-downloader:
               - 'project_video-downloader/**'
+            weather-app:
+              - 'project_weather-app/**'
 
   plan:
     needs: [detect]
@@ -92,10 +95,12 @@ jobs:
         env:
           MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
           MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+          WEATHER_APP_SECRETS: ${{ secrets.WEATHER_APP_SECRETS_TFVARS }}
         run: |
           case "${{ matrix.project }}" in
-            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
-            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            mealplan)    echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading)  echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            weather-app) echo "$WEATHER_APP_SECRETS" > secrets.auto.tfvars ;;
             *) ;;
           esac
 
@@ -154,10 +159,12 @@ jobs:
         env:
           MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
           MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+          WEATHER_APP_SECRETS: ${{ secrets.WEATHER_APP_SECRETS_TFVARS }}
         run: |
           case "${{ matrix.project }}" in
-            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
-            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            mealplan)    echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading)  echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            weather-app) echo "$WEATHER_APP_SECRETS" > secrets.auto.tfvars ;;
             *) ;;
           esac
 
@@ -190,10 +197,12 @@ jobs:
         env:
           MEALPLAN_SECRETS: ${{ secrets.MEALPLAN_SECRETS_TFVARS }}
           MK_TRADING_SECRETS: ${{ secrets.MK_TRADING_SECRETS_TFVARS }}
+          WEATHER_APP_SECRETS: ${{ secrets.WEATHER_APP_SECRETS_TFVARS }}
         run: |
           case "${{ github.event.inputs.project }}" in
-            mealplan)   echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
-            mk-trading) echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            mealplan)    echo "$MEALPLAN_SECRETS" > secrets.auto.tfvars ;;
+            mk-trading)  echo "$MK_TRADING_SECRETS" > secrets.auto.tfvars ;;
+            weather-app) echo "$WEATHER_APP_SECRETS" > secrets.auto.tfvars ;;
             *) ;;
           esac
 
