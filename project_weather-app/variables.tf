@@ -63,3 +63,19 @@ variable "deletion_protection" {
   type    = bool
   default = false
 }
+
+## weather-app-specific: env/secrets. Not part of the shared template — this
+## project diverges from the generic three-file pattern intentionally.
+
+variable "gcp_project_number" {
+  description = "Used to build the default Cloud Run runtime service account email for Secret Manager IAM grants."
+  type        = string
+  default     = "655315820279"
+}
+
+variable "openweather_api_key" {
+  description = "Set via secrets.auto.tfvars (gitignored), never in app.tfvars."
+  type        = string
+  sensitive   = true
+  default     = ""
+}

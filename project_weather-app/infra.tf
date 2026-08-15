@@ -44,6 +44,16 @@ module "app" {
   invoker_members       = var.invoker_members
   custom_domain         = var.custom_domain
   deletion_protection   = var.deletion_protection
+
+  secret_env_vars = {
+    OPENWEATHER_API_KEY = { secret_id = google_secret_manager_secret.this.secret_id }
+  }
+
+  # secret_env_vars only references the secret *container* (secret_id), not
+  # the version resource, so Terraform has no implicit dependency forcing it
+  # to wait for a version to actually exist before deploying Cloud Run —
+  # without this, "latest" can 404 on first apply (version still committing).
+  depends_on = [google_secret_manager_secret_version.this]
 }
 
 output "uri" {
