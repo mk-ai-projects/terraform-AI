@@ -1,5 +1,5 @@
 name                  = "weather-app"
-image                 = "docker.io/manukoli1986/weather:1.0.11"
+image                 = "docker.io/manukoli1986/weather:1.0.12"
 container_port        = 8080
 cpu                   = "1"
 memory                = "512Mi"
