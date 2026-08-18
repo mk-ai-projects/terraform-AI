@@ -3,10 +3,14 @@ locals {
   # itself — nonsensitive() strips the sensitivity Terraform otherwise
   # propagates through the comparison, which would taint for_each below.
   include_anthropic = nonsensitive(var.anthropic_api_key != "")
+  include_telegram  = nonsensitive(var.telegram_bot_token != "")
+  include_alert     = nonsensitive(var.alert_token != "")
 
   secret_names = toset(concat(
     ["google-client-secret"],
-    local.include_anthropic ? ["anthropic-api-key"] : []
+    local.include_anthropic ? ["anthropic-api-key"] : [],
+    local.include_telegram ? ["telegram-bot-token"] : [],
+    local.include_alert ? ["alert-token"] : []
   ))
 
   # Sensitive values kept in a separate map, looked up per-resource by the
@@ -18,6 +22,12 @@ locals {
     },
     local.include_anthropic ? {
       "anthropic-api-key" = var.anthropic_api_key
+    } : {},
+    local.include_telegram ? {
+      "telegram-bot-token" = var.telegram_bot_token
+    } : {},
+    local.include_alert ? {
+      "alert-token" = var.alert_token
     } : {}
   )
 

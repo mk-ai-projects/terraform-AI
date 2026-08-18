@@ -81,6 +81,26 @@ variable "google_client_id" {
   type = string
 }
 
+variable "telegram_chat_id" {
+  description = "Telegram chat for the 09:10 pre-open alert. Not a secret — only an identifier."
+  type        = string
+  default     = ""
+}
+
+variable "telegram_bot_token" {
+  description = "Set via secrets.auto.tfvars (gitignored), never in app.tfvars. Empty = alerts disabled."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "alert_token" {
+  description = "Shared secret Cloud Scheduler presents to POST /api/alerts/*. Set via secrets.auto.tfvars. Empty = the alert endpoints refuse every request."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "gcs_bucket" {
   description = "GCS bucket the dashboard persists its cache to. Cloud Run's filesystem is ephemeral, so with this empty the app falls back to local files and every cache write is lost on the next cold start."
   type        = string

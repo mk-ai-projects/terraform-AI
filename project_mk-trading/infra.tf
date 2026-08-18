@@ -52,6 +52,7 @@ module "app" {
     ADMIN_EMAILS        = var.admin_emails
     GOOGLE_CLIENT_ID    = var.google_client_id
     GCS_BUCKET          = var.gcs_bucket
+    TELEGRAM_CHAT_ID    = var.telegram_chat_id
   }
 
   secret_env_vars = merge(
@@ -60,6 +61,12 @@ module "app" {
     },
     var.anthropic_api_key == "" ? {} : {
       ANTHROPIC_API_KEY = { secret_id = google_secret_manager_secret.this["anthropic-api-key"].secret_id }
+    },
+    var.telegram_bot_token == "" ? {} : {
+      TELEGRAM_BOT_TOKEN = { secret_id = google_secret_manager_secret.this["telegram-bot-token"].secret_id }
+    },
+    var.alert_token == "" ? {} : {
+      ALERT_TOKEN = { secret_id = google_secret_manager_secret.this["alert-token"].secret_id }
     }
   )
 
