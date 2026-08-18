@@ -51,6 +51,7 @@ module "app" {
     CORS_ORIGIN         = "https://${var.custom_domain}"
     ADMIN_EMAILS        = var.admin_emails
     GOOGLE_CLIENT_ID    = var.google_client_id
+    GCS_BUCKET          = var.gcs_bucket
   }
 
   secret_env_vars = merge(

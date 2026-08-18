@@ -81,6 +81,12 @@ variable "google_client_id" {
   type = string
 }
 
+variable "gcs_bucket" {
+  description = "GCS bucket the dashboard persists its cache to. Cloud Run's filesystem is ephemeral, so with this empty the app falls back to local files and every cache write is lost on the next cold start."
+  type        = string
+  default     = ""
+}
+
 variable "google_client_secret" {
   description = "Set via secrets.auto.tfvars (gitignored), never in app.tfvars."
   type        = string

@@ -11,6 +11,12 @@ custom_domain         = "mk-trading.mayankkoli.com"
 # apply — Terraform can't do that step. Leave as `custom_domain = null` to skip
 # the domain mapping (service stays reachable only at its *.run.app URL).
 
+# Cache persistence. Cloud Run gives each container an ephemeral filesystem and
+# every cold start begins from the image, so without this the dashboard loses
+# every cached fetch on each restart. Bucket lives in the same region as the
+# service; its service account already holds objectAdmin on it.
+gcs_bucket = "mk-trading-dashboard-cache"
+
 admin_emails     = "manukoli1986@gmail.com"
 google_client_id = "481302070062-7nme0629e9gsumj1d6aptu5jc3ad8hbm.apps.googleusercontent.com"
 # secrets (google_client_secret, anthropic_api_key) go in
