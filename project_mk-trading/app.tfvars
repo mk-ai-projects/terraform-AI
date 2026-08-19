@@ -1,5 +1,5 @@
 name                  = "mk-trading"
-image                 = "docker.io/manukoli1986/mk-trading:latest"
+image                 = "docker.io/manukoli1986/mk-trading:v2.0.0-40"
 container_port        = 8080
 cpu                   = "1"
 memory                = "512Mi"
