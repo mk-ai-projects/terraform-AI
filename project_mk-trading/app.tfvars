@@ -1,5 +1,5 @@
 name           = "mk-trading"
-image                 = "docker.io/manukoli1986/mk-trading:v2.0.0-38"
+image                 = "docker.io/manukoli1986/mk-trading:v2.0.0-40"
 container_port = 8080
 cpu            = "2"
 # Puppeteer drives a real headless Chromium for the NSE scrape. At 512Mi the
