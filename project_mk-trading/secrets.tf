@@ -5,12 +5,14 @@ locals {
   include_anthropic = nonsensitive(var.anthropic_api_key != "")
   include_telegram  = nonsensitive(var.telegram_bot_token != "")
   include_alert     = nonsensitive(var.alert_token != "")
+  include_smartapi  = nonsensitive(var.smartapi_api_key != "")
 
   secret_names = toset(concat(
     ["google-client-secret"],
     local.include_anthropic ? ["anthropic-api-key"] : [],
     local.include_telegram ? ["telegram-bot-token"] : [],
-    local.include_alert ? ["alert-token"] : []
+    local.include_alert ? ["alert-token"] : [],
+    local.include_smartapi ? ["smartapi-api-key", "smartapi-password", "smartapi-totp-secret"] : []
   ))
 
   # Sensitive values kept in a separate map, looked up per-resource by the
@@ -28,6 +30,11 @@ locals {
     } : {},
     local.include_alert ? {
       "alert-token" = var.alert_token
+    } : {},
+    local.include_smartapi ? {
+      "smartapi-api-key"     = var.smartapi_api_key
+      "smartapi-password"    = var.smartapi_password
+      "smartapi-totp-secret" = var.smartapi_totp_secret
     } : {}
   )
 

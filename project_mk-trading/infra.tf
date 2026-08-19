@@ -46,13 +46,14 @@ module "app" {
   deletion_protection   = var.deletion_protection
 
   env_vars = {
-    NODE_ENV            = "production"
-    GOOGLE_REDIRECT_URI = "https://${var.custom_domain}/api/google/callback"
-    CORS_ORIGIN         = "https://${var.custom_domain}"
-    ADMIN_EMAILS        = var.admin_emails
-    GOOGLE_CLIENT_ID    = var.google_client_id
-    GCS_BUCKET          = var.gcs_bucket
-    TELEGRAM_CHAT_ID    = var.telegram_chat_id
+    NODE_ENV             = "production"
+    GOOGLE_REDIRECT_URI  = "https://${var.custom_domain}/api/google/callback"
+    CORS_ORIGIN          = "https://${var.custom_domain}"
+    ADMIN_EMAILS         = var.admin_emails
+    GOOGLE_CLIENT_ID     = var.google_client_id
+    GCS_BUCKET           = var.gcs_bucket
+    TELEGRAM_CHAT_ID     = var.telegram_chat_id
+    SMARTAPI_CLIENT_CODE = var.smartapi_client_code
   }
 
   secret_env_vars = merge(
@@ -67,6 +68,11 @@ module "app" {
     },
     var.alert_token == "" ? {} : {
       ALERT_TOKEN = { secret_id = google_secret_manager_secret.this["alert-token"].secret_id }
+    },
+    var.smartapi_api_key == "" ? {} : {
+      SMARTAPI_API_KEY     = { secret_id = google_secret_manager_secret.this["smartapi-api-key"].secret_id }
+      SMARTAPI_PASSWORD    = { secret_id = google_secret_manager_secret.this["smartapi-password"].secret_id }
+      SMARTAPI_TOTP_SECRET = { secret_id = google_secret_manager_secret.this["smartapi-totp-secret"].secret_id }
     }
   )
 
