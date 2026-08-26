@@ -1,5 +1,5 @@
 name                  = "mk-stock-screener"
-image                 = "docker.io/manukoli1986/mk-stock-screener:latest"
+image                 = "docker.io/manukoli1986/mk-stock-screener:0.0.4"
 container_port        = 8080
 cpu                   = "1"
 memory                = "512Mi"
