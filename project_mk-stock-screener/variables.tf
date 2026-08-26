@@ -60,3 +60,23 @@ variable "deletion_protection" {
   type    = bool
   default = false
 }
+
+variable "gcp_project_number" {
+  description = "Used to build the default Cloud Run runtime service account email for Secret Manager IAM grants."
+  type        = string
+  default     = "655315820279"
+}
+
+variable "admin_key" {
+  description = "Login key for the app. Set via secrets.auto.tfvars (gitignored), never in app.tfvars."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "secret_key" {
+  description = "Flask session signing key. Set via secrets.auto.tfvars (gitignored), never in app.tfvars."
+  type        = string
+  sensitive   = true
+  default     = ""
+}

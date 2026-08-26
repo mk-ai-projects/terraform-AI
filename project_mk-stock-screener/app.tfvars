@@ -8,3 +8,5 @@ max_instances         = 1
 allow_unauthenticated = true
 invoker_members       = []
 custom_domain         = "mk-stock-screener.mayankkoli.com"
+# ADMIN_KEY / SECRET_KEY come from Secret Manager (secrets.tf). Values live in
+# secrets.auto.tfvars locally, or repo secret MK_STOCK_SCREENER_SECRETS_TFVARS in CI.
