@@ -31,6 +31,19 @@ module "app" {
   invoker_members       = var.invoker_members
   custom_domain         = var.custom_domain
   deletion_protection   = var.deletion_protection
+
+  env_vars = {
+    TELEGRAM_CHAT_ID = "762833990"
+  }
+
+  # Flask login + alerts. These secrets already exist in the GCP project;
+  # listing them here stops a terraform apply from wiping gcloud-set env.
+  secret_env_vars = {
+    ADMIN_KEY          = { secret_id = "mk-stock-screener-admin-key" }
+    SECRET_KEY         = { secret_id = "mk-stock-screener-secret-key" }
+    TELEGRAM_BOT_TOKEN = { secret_id = "mk-trading-telegram-bot-token" }
+    ALERT_TOKEN        = { secret_id = "mk-trading-alert-token" }
+  }
 }
 
 output "uri" {
